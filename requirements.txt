@@ -1,0 +1,5 @@
+beautifulsoup4
+requests
+deep-translator
+python-dotenv
+streamlit

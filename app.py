@@ -17,6 +17,21 @@ def get_headers():
         headers["Authorization"] = f"Bearer {STRAPI_TOKEN}"
     return headers
 
+def extract_text_from_blocks(blocks):
+    # Strapi v5 Blocks (JSON dizisi) formatını tek parça string'e çevirir
+    if not blocks:
+        return ""
+    if isinstance(blocks, str):
+        return blocks
+    
+    text = ""
+    for block in blocks:
+        if isinstance(block, dict) and block.get("type") == "paragraph":
+            for child in block.get("children", []):
+                text += child.get("text", "")
+            text += "\n"
+    return text.strip()
+
 def fetch_cuisines(locale="tr"):
     try:
         url = f"{STRAPI_URL}/api/cuisines?locale={locale}"
@@ -31,7 +46,7 @@ def fetch_recipes(cuisine_id=None, locale="tr"):
     try:
         url = f"{STRAPI_URL}/api/recipes?populate=KapakResmi&locale={locale}"
         if cuisine_id:
-            url += f"&filters[Cuisine][id][$eq]={cuisine_id}"
+            url += f"&filters[cuisines][id][$eq]={cuisine_id}"
         res = requests.get(url, headers=get_headers(), timeout=10)
         if res.status_code == 200:
             return res.json().get("data", [])
@@ -53,7 +68,7 @@ with st.sidebar:
     
     cuisine_options = {"Tümü / All": None}
     for c in cuisines:
-        cuisine_options[c["attributes"]["Ad"]] = c["id"]
+        cuisine_options[c.get("Ad", "Bilinmeyen")] = c.get("id")
         
     selected_cuisine_name = st.selectbox("Bir mutfak seçin / Select:", options=list(cuisine_options.keys()))
     selected_cuisine_id = cuisine_options[selected_cuisine_name]
@@ -69,16 +84,16 @@ else:
     cols = st.columns(3)
     
     for index, recipe in enumerate(recipes):
-        attr = recipe.get("attributes", {})
+        attr = recipe  # Strapi v5'te veriler direkt objenin içindedir ("attributes" altında değil)
         col = cols[index % 3]
         
         with col:
             st.markdown(f"### {attr.get('TarifAdi', 'İsimsiz Tarif')}")
             
-            # Kapak Resmi Gösterimi
-            media = attr.get("KapakResmi", {}).get("data")
-            if media:
-                img_url = media.get("attributes", {}).get("url", "")
+            # Kapak Resmi Gösterimi (Strapi v5 Formatı)
+            media = attr.get("KapakResmi")
+            if isinstance(media, dict) and media.get("url"):
+                img_url = media.get("url")
                 # Eğer URL tam yol (http ile) başlamıyorsa Strapi hostunu ekle
                 if not img_url.startswith("http"):
                     img_url = STRAPI_URL + img_url
@@ -89,14 +104,16 @@ else:
             # Puan Değerinin Yıldız Sembolü İle Gösterimi
             st.markdown(f"**Puan:** ★ {attr.get('Puan', '-')}")
             
-            # Malzemeler Özeti (İlk 100 karakter)
-            malzemeler = attr.get('Malzemeler', '')
-            ozet = malzemeler[:100] + "..." if len(malzemeler) > 100 else malzemeler
+            # Malzemeler Özeti (Blocks nesnesini string'e çevirip ilk 100 karakterini alıyoruz)
+            malzemeler_str = extract_text_from_blocks(attr.get('Malzemeler', []))
+            yapilis_str = extract_text_from_blocks(attr.get('Yapilis', []))
+            
+            ozet = malzemeler_str[:100] + "..." if len(malzemeler_str) > 100 else malzemeler_str
             st.markdown(f"**Malzemeler:** {ozet}")
             
             # Detaylar için Genişletilebilir Bölüm (Expander)
             with st.expander("Tam Yapılış / Detaylar"):
                 st.markdown("**Tüm Malzemeler:**")
-                st.write(malzemeler)
+                st.write(malzemeler_str)
                 st.markdown("**Yapılış:**")
-                st.write(attr.get('Yapilis', ''))
+                st.write(yapilis_str)

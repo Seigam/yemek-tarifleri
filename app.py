@@ -5,9 +5,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-STRAPI_URL = os.getenv("STRAPI_URL", "https://yemek-tarifleri-yysj.onrender.com")
-STRAPI_TOKEN = os.getenv("STRAPI_TOKEN", "053b14787c27f844e4fffa9e26be6811670a61221ae3f31d10092ae127acb75e3e4c48659e359ca234534313036ebc1d0ca322e70ff468091a2cae7834939722205476407a4c49564238adb9e02fede3eb0db2f07dae8d2f5f42826881d9b85c40ac8895a59b283527440f5614395ad1ff666c8609224c66c498455727127ca7")
+STRAPI_URL = os.getenv("STRAPI_URL", "http://localhost:1337")
+STRAPI_TOKEN = os.getenv("STRAPI_TOKEN", "") 
 
+# Streamlit sayfası genel yapılandırması
 st.set_page_config(page_title="Dünya Mutfakları Tarif Rehberi", page_icon="🍽️", layout="wide")
 
 def get_headers():
@@ -27,7 +28,6 @@ def fetch_cuisines(locale="tr"):
     return []
 
 def fetch_recipes(cuisine_id=None, locale="tr"):
-    # Seçili mutfağa ve dile göre tarifleri resimleriyle birlikte çek
     try:
         url = f"{STRAPI_URL}/api/recipes?populate=KapakResmi&locale={locale}"
         if cuisine_id:
@@ -39,6 +39,7 @@ def fetch_recipes(cuisine_id=None, locale="tr"):
         st.error(f"Tarifler çekilirken hata oluştu: {e}")
     return []
 
+# Arayüz Bileşenleri
 st.title("🍽️ Dünya Mutfakları Tarif Rehberi")
 
 # Sol Sidebar: Dil ve Mutfak Seçimi için ayrılmış alan

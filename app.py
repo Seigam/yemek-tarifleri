@@ -38,7 +38,7 @@ def extract_text_from_blocks(blocks):
 def fetch_cuisines(locale="tr"):
     try:
         url = f"{STRAPI_URL}/api/cuisines?locale={locale}"
-        res = requests.get(url, headers=get_headers(), timeout=10)
+        res = requests.get(url, headers=get_headers(), timeout=60)
         if res.status_code == 200:
             return res.json().get("data", [])
     except Exception as e:
@@ -50,7 +50,7 @@ def fetch_recipes(cuisine_id=None, locale="tr"):
         url = f"{STRAPI_URL}/api/recipes?populate=KapakResmi&locale={locale}"
         if cuisine_id:
             url += f"&filters[cuisines][id][$eq]={cuisine_id}"
-        res = requests.get(url, headers=get_headers(), timeout=10)
+        res = requests.get(url, headers=get_headers(), timeout=60)
         if res.status_code == 200:
             return res.json().get("data", [])
     except Exception as e:

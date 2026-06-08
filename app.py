@@ -3,13 +3,10 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 
-load_dotenv("../.env") # Ana dizindeki .env'yi de okumaya çalış
 load_dotenv()
 
-# Eğer .env'de tanımlı değilse doğrudan canlı sunucu adresini (Render) kullanır
-STRAPI_URL = os.getenv("STRAPI_URL", "https://yemek-tarifleri-yysj.onrender.com")
-# Farklı adlandırmalara karşı hem STRAPI_API_TOKEN hem STRAPI_TOKEN kontrol edilir
-STRAPI_TOKEN = os.getenv("STRAPI_API_TOKEN", os.getenv("STRAPI_TOKEN", "")) 
+STRAPI_URL = os.getenv("STRAPI_URL", "http://localhost:1337")
+STRAPI_TOKEN = os.getenv("STRAPI_TOKEN", "") 
 
 # Streamlit sayfası genel yapılandırması
 st.set_page_config(page_title="Dünya Mutfakları Tarif Rehberi", page_icon="🍽️", layout="wide")
@@ -38,7 +35,7 @@ def extract_text_from_blocks(blocks):
 def fetch_cuisines(locale="tr"):
     try:
         url = f"{STRAPI_URL}/api/cuisines?locale={locale}"
-        res = requests.get(url, headers=get_headers(), timeout=60)
+        res = requests.get(url, headers=get_headers(), timeout=10)
         if res.status_code == 200:
             return res.json().get("data", [])
     except Exception as e:
@@ -50,7 +47,7 @@ def fetch_recipes(cuisine_id=None, locale="tr"):
         url = f"{STRAPI_URL}/api/recipes?populate=KapakResmi&locale={locale}"
         if cuisine_id:
             url += f"&filters[cuisines][id][$eq]={cuisine_id}"
-        res = requests.get(url, headers=get_headers(), timeout=60)
+        res = requests.get(url, headers=get_headers(), timeout=10)
         if res.status_code == 200:
             return res.json().get("data", [])
     except Exception as e:
@@ -87,7 +84,7 @@ else:
     cols = st.columns(3)
     
     for index, recipe in enumerate(recipes):
-        attr = recipe  # Strapi v5'te veriler direkt objenin içindedir ("attributes" altında değil)
+        attr = recipe
         col = cols[index % 3]
         
         with col:

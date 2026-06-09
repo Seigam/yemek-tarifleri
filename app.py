@@ -3,7 +3,9 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 
-load_dotenv()
+# Bir üst klasördeki .env dosyasını bul ve yükle
+env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+load_dotenv(env_path)
 
 STRAPI_URL = os.getenv("STRAPI_URL", "http://localhost:1337")
 STRAPI_TOKEN = os.getenv("STRAPI_TOKEN", "") 

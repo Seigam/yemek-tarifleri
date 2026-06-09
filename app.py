@@ -8,7 +8,7 @@ env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(env_path)
 
 STRAPI_URL = os.getenv("STRAPI_URL", "http://localhost:1337")
-STRAPI_TOKEN = os.getenv("STRAPI_TOKEN", "") 
+STRAPI_TOKEN = os.getenv("STRAPI_API_TOKEN", "") 
 
 # Streamlit sayfası genel yapılandırması
 st.set_page_config(page_title="Dünya Mutfakları Tarif Rehberi", page_icon="🍽️", layout="wide")
